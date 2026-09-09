@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2026 Demos Wang. All rights reserved. -->
+<html lang="zh-CN" data-page-node-id="yOjeZ05ZG3mpVhQyG8pOwG">
+<head data-page-node-id="um1jjFTn7ChLvLPKqa0NOX">
+<meta charset="UTF-8" data-page-node-id="u2InoA8EBcWMlxO1DdYDvg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="uHdcBcvuS83bMDzrv79sjF">
+<title>沉默证词 · AI 审讯室</title>
+<style>
+  :root{
+    --bg:#0c0e11; --panel:#14171c; --panel2:#1a1e25; --line:#262c36;
+    --ink:#e8e6e0; --sub:#9aa3ad; --muted:#5f6873;
+    --amber:#d9a441; --red:#c0392b; --green:#3f8f5f; --blue:#5b8def;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+  .mono{font-family:Consolas,"JetBrains Mono",monospace}
+  header{border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header .logo{font-size:17px;font-weight:700;letter-spacing:2px}
+  header .logo span{color:var(--amber)}
+  header .case-name{font-size:12px;color:var(--sub)}
+  header .sp{flex:1}
+  header .timer{font-size:13px;color:var(--sub)}
+  header button{background:none;border:1px solid var(--line);color:var(--sub);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer}
+  header button:hover{color:var(--ink);border-color:var(--amber)}
+  main{max-width:980px;margin:0 auto;padding:26px 18px 80px}
+  [hidden]{display:none!important}
+
+  /* 首页 */
+  .hero{text-align:center;padding:70px 0 40px}
+  .hero h1{font-size:40px;letter-spacing:8px;font-weight:800}
+  .hero h1 b{color:var(--amber)}
+  .hero p{color:var(--sub);margin-top:16px;font-size:14px;line-height:1.9}
+  .lamp{width:4px;height:52px;background:linear-gradient(#d9a441,#3a2f14);margin:26px auto 0;border-radius:2px;box-shadow:0 18px 60px 12px rgba(217,164,65,.28)}
+  .btn{display:inline-block;background:var(--amber);color:#15130c;border:none;border-radius:8px;padding:13px 38px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:2px;margin-top:34px}
+  .btn:hover{filter:brightness(1.1)}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--sub);font-weight:400}
+  .btn:disabled{opacity:.4;cursor:wait}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:48px;text-align:left}
+  .rule{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .rule b{display:block;color:var(--amber);font-size:13px;margin-bottom:6px}
+  .rule p{color:var(--sub);font-size:12.5px;line-height:1.7}
+
+  /* 通用面板 */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .label{font-size:11px;color:var(--amber);letter-spacing:3px;margin-bottom:10px}
+
+  /* 卷宗 */
+  .case-head h2{font-size:24px;margin-bottom:6px}
+  .case-head .meta{color:var(--sub);font-size:13px;line-height:1.8}
+  .case-head .intro{margin-top:12px;color:#cfd4da;font-size:14px;line-height:1.9;border-left:3px solid var(--amber);padding-left:14px}
+  .sus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:14px}
+  .sus{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px;cursor:pointer;transition:.15s;position:relative}
+  .sus:hover{border-color:var(--amber);transform:translateY(-2px)}
+  .sus h4{font-size:16px}
+  .sus .idn{color:var(--sub);font-size:12px;margin-top:4px;line-height:1.6}
+  .sus .st{margin-top:10px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+  .sus .done{position:absolute;top:10px;right:12px;font-size:11px;color:var(--green)}
+  .ev-btn{margin-top:18px}
+
+  /* 审讯 */
+  .int-layout{display:grid;grid-template-columns:230px 1fr;gap:14px;align-items:start}
+  .side .item{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+  .side .item.cur{border-color:var(--amber)}
+  .side .item h5{font-size:14px}
+  .side .item .pv{height:5px;background:#232830;border-radius:3px;margin-top:8px;overflow:hidden}
+  .side .item .pv i{display:block;height:100%;background:var(--green);transition:.4s}
+  .side .item small{color:var(--muted);font-size:11px}
+  .side .ev-side{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+  .side .ev-side .ev-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;color:var(--amber);letter-spacing:1px}
+  .side .ev-side .ev-row{border-top:1px dashed var(--line);padding:9px 0;cursor:pointer}
+  .side .ev-side .ev-row b{font-size:12.5px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .side .ev-side .ev-row p{color:var(--sub);font-size:11.5px;line-height:1.7;margin-top:6px}
+  .side .ev-side .cite{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:6px;padding:1px 8px;background:none;cursor:pointer;font-family:inherit;flex-shrink:0}
+  .side .ev-side .cite:hover{background:rgba(217,164,65,.12)}
+  .chat{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;height:66vh;min-height:440px}
+  .chat-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .chat-head .nm{font-weight:700}
+  .chat-head .rel{font-size:11px;color:var(--muted)}
+  .chat-head .prs{margin-left:auto;font-size:11px;color:var(--sub);display:flex;align-items:center;gap:8px}
+  .chat-head .prs .pv{width:90px;height:5px;background:#232830;border-radius:3px;overflow:hidden}
+  .chat-head .prs .pv i{display:block;height:100%;background:var(--green);transition:.4s}
+  .msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+  .m{max-width:82%;line-height:1.8;font-size:13.5px;border-radius:10px;padding:11px 14px;white-space:pre-wrap}
+  .m.ai{background:var(--panel2);border:1px solid var(--line);align-self:flex-start;border-top-left-radius:2px}
+  .m.me{background:#243043;align-self:flex-end;border-top-right-radius:2px}
+  .m.sys{align-self:center;background:none;border:1px dashed var(--line);color:var(--amber);font-size:12px;max-width:94%}
+  .chat-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--line)}
+  .chat-input textarea{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13.5px;resize:none;font-family:inherit;outline:none}
+  .chat-input textarea:focus{border-color:var(--amber)}
+  .chat-input button{background:var(--amber);border:none;color:#15130c;font-weight:700;border-radius:8px;padding:0 22px;cursor:pointer}
+  .quick{padding:0 12px 12px;display:flex;gap:8px;flex-wrap:wrap}
+  .quick button{background:none;border:1px solid var(--line);color:var(--sub);font-size:11px;border-radius:999px;padding:4px 12px;cursor:pointer}
+  .quick button:hover{color:var(--amber);border-color:var(--amber)}
+
+  /* 指控 */
+  .verdict h2{font-size:22px;margin-bottom:4px}
+  .verdict .tip{color:var(--sub);font-size:13px;margin-bottom:16px;line-height:1.8}
+  .pick-sus{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .pick-sus .sus.sel{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+  .pick-ev{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px}
+  .ev{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;font-size:12.5px}
+  .ev.sel{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+  .ev b{display:block;font-size:13px;margin-bottom:4px}
+  .ev p{color:var(--sub);line-height:1.6}
+  .notes-box{margin-top:18px}
+  .notes-box li{color:var(--sub);font-size:12.5px;line-height:1.9;margin-left:18px}
+
+  /* 结算 */
+  .result{text-align:center;padding-top:30px}
+  .result .big{font-size:34px;letter-spacing:6px;font-weight:800}
+  .result .big.ok{color:var(--amber)}
+  .result .big.no{color:var(--red)}
+  .result .rate{display:inline-block;margin:18px auto 0;font-size:15px;color:#15130c;background:var(--amber);border-radius:8px;padding:6px 20px;font-weight:800;letter-spacing:2px}
+  .stat-line{display:flex;justify-content:center;gap:26px;margin-top:20px;flex-wrap:wrap;color:var(--sub);font-size:13px}
+  .stat-line b{color:var(--ink)}
+  .truth{text-align:left;margin-top:26px}
+
+  /* 弹层 */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;padding:24px}
+  .modal h3{margin-bottom:14px;font-size:17px}
+  .modal .fld{margin-bottom:14px}
+  .modal .fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px}
+  .modal .fld input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit}
+  .modal .fld input:focus{border-color:var(--amber)}
+  .modal .hint{font-size:11.5px;color:var(--muted);line-height:1.7;margin-top:4px}
+  .ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#2a2f38;border:1px solid var(--line);color:var(--ink);padding:10px 20px;border-radius:8px;font-size:13px;z-index:99;opacity:0;transition:.3s;pointer-events:none}
+  .toast.on{opacity:1}
+  .loading{text-align:center;padding:60px 0;color:var(--sub);font-size:14px;line-height:2.2}
+  .loading .dot{color:var(--amber)}
+  /* ===== 悬疑质感层 ===== */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.05;
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2"/></filter><rect width="140" height="140" filter="url(%23n)" opacity="0.7"/></svg>')}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:89;
+    background:radial-gradient(ellipse at 50% -10%,rgba(217,164,65,.07),transparent 55%),radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.5) 100%)}
+  header,main{position:relative;z-index:2}
+  .hero h1,.case-head h2,.verdict h2,.result .big,.modal h3{font-family:"Songti SC","STSong","Noto Serif SC","SimSun",serif}
+  .hero h1{text-shadow:0 0 26px rgba(217,164,65,.28)}
+  .lamp{animation:flick 3.4s infinite}
+  @keyframes flick{0%,90%,100%{opacity:1}91%{opacity:.45}92%{opacity:1}95%{opacity:.65}96%{opacity:1}}
+  .stamp{position:absolute;top:16px;right:18px;font-family:"Songti SC","SimSun",serif;color:#d24a3c;border:3px double #d24a3c;border-radius:4px;padding:4px 12px;font-size:14px;letter-spacing:8px;text-indent:8px;transform:rotate(-9deg);opacity:.72;font-weight:800}
+  .case-head{position:relative}
+  .sus .mug{width:46px;height:46px;border-radius:6px;float:right;margin:0 0 6px 12px;border:1px solid var(--line);
+    background:repeating-linear-gradient(0deg,#23272f 0 4px,#1b1f26 4px 8px);display:flex;align-items:center;justify-content:center;color:#454d59}
+  .rec{margin-left:auto;font-size:10.5px;color:#d24a3c;letter-spacing:2px;animation:blink 1.4s infinite}
+  .rec i{font-style:normal;font-size:9px;vertical-align:1px}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  .chat-head .prs{margin-left:14px}
+  .prs .pv i.hot{animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+  .msgs::-webkit-scrollbar{width:6px}
+  .msgs::-webkit-scrollbar-thumb{background:#2a303a;border-radius:3px}
+  .btn{border-radius:4px;letter-spacing:4px;text-indent:4px;box-shadow:0 0 20px rgba(217,164,65,.22)}
+  .btn.ghost{box-shadow:none}
+  .prov-row{display:flex;gap:8px;flex-wrap:wrap}
+  .prov-row button{background:var(--panel2);border:1px solid var(--line);color:var(--sub);border-radius:6px;padding:8px 14px;font-size:12.5px;cursor:pointer}
+  .prov-row button.on{border-color:var(--amber);color:var(--amber);background:rgba(217,164,65,.08)}
+  .prov-row button.off{opacity:.4;cursor:not-allowed}
+  .modal select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit}
+  .modal select:focus{border-color:var(--amber)}
+  @media(max-width:720px){.int-layout{grid-template-columns:1fr}.side{display:flex;gap:8px;overflow-x:auto}.side .item{min-width:150px;margin-bottom:0}.side .ev-side{min-width:250px}}
+</style>
+</head>
+<body data-page-node-id="sypBg7t1JRZu7l8gOqexOe">
+<header data-page-node-id="UQwL7iYfWlXu5a54A5Ai64">
+  <div class="logo" data-page-node-id="PbRDwIEwCQrTvA5AIoovm7">沉默<span data-page-node-id="4qyM3o85F68NnVFW2lI11t">证词</span></div>
+  <div class="case-name" id="h-case" data-page-node-id="UhtnxrlZEBmdQWAtVGI6ib"></div>
+  <div class="sp" data-page-node-id="u2L9TqiqJrBLMVIbcsHB9B"></div>
+  <div class="timer mono" id="h-timer" hidden data-page-node-id="zLNPQ3lkfTGf4u2YmBCEfK">00:00</div>
+  <button onclick="openSettings()" data-page-node-id="UUNGdBDVvd6RNVIosyJAkP">API 设置</button>
+  <button onclick="location.reload()" id="h-new" hidden data-page-node-id="Kr97qTx4wlXzCc3gyDaCwk">换一案</button>
+</header>
+<main data-page-node-id="YCUVIENMgJi91CZYFI0BAS">
+
+  <!-- 首页 -->
+  <section id="s-home" data-page-node-id="igij1WVWf4beARk3RcR9Og">
+    <div class="hero" data-page-node-id="denK87piBz7TsrMOuAe3uW">
+      <h1 data-page-node-id="k1w2UskBcQdTThUrLrGfZs">沉默<b data-page-node-id="yFl1oN4Btp952gb1587Aad">证词</b></h1>
+      <div class="lamp" data-page-node-id="nNhQVmqN25KUFvB9gMV44b"></div>
+      <p data-page-node-id="yNvKktXpeonXNjSZIUmLeI">一桩凶案。三名嫌疑人。每个人都有秘密，真凶在撒谎。<br data-page-node-id="1M9RM1Zy8Jn32BSDckiSRE">你就是审讯官——撬开他们的嘴，找出真凶，提交指控。</p>
+      <button class="btn" onclick="startNew()" data-page-node-id="74rXPIZT5dUtmuxgUsmUO3">开始新案件</button>
+    </div>
+    <div class="rules" data-page-node-id="PEhvyaJsyK0dHCIbIdUV6g">
+      <div class="rule" data-page-node-id="M090I3f4HC11tblLbmRyya"><b data-page-node-id="lN4QfvZzT5jTMtUhOFzl8g">壹 · 查证据</b><p data-page-node-id="LcQmec1BKmdIjy6pIp7CTu">每案 5 条现场勘查证据，有的指向真凶，有的是烟雾弹。证据是撬开嘴的杠杆。</p></div>
+      <div class="rule" data-page-node-id="21WPvadFFlH0RmMkMYiTAC"><b data-page-node-id="3yvuENz7IX3YSQ8af97uVn">贰 · 戳谎言</b><p data-page-node-id="jXpFtSfh2319dL0sVUAP6F">嫌疑人的口供里有矛盾。指出矛盾、或出示对应证据，口供崩一角，压力上升。</p></div>
+      <div class="rule" data-page-node-id="rMjBYdFaAIozT7gs0mtrY7"><b data-page-node-id="EyhW7VWRTroJZa6QZPGpSQ">叁 · 提指控</b><p data-page-node-id="BduOguacpXZIy1EhQ3AebC">锁定凶手 + 提交定罪证据链。指错人，真凶脱逃，游戏结束。</p></div>
+    </div>
+  </section>
+
+  <!-- 案件生成中 -->
+  <section id="s-gen" hidden data-page-node-id="6oEoUusrbvmy1bEWzs5qrF">
+    <div class="loading" id="gen-text" data-page-node-id="PCnHhI8woTFsZF21V3OyCX">正在立案<span class="dot" data-page-node-id="xXZm0akg5GjugSzhnbaH7q">…</span></div>
+  </section>
+
+  <!-- 卷宗 -->
+  <section id="s-case" hidden data-page-node-id="xvONc9EfUt3UDH4MZLb2ds">
+    <div class="panel case-head" id="case-head" data-page-node-id="vxNY5y1rYQ2l7yPGxTIwvA"></div>
+    <div style="margin-top:16px" class="panel" data-page-node-id="FES0RPCy5dg6TgxiKT7JCz">
+      <div class="label" data-page-node-id="5rHyoDAu9shHQbznj1jbpj">嫌疑人 · 点击开始审讯</div>
+      <div class="sus-grid" id="sus-grid" data-page-node-id="sN8TYklnbUtsayeTwLwVOb"></div>
+      <button class="btn ghost ev-btn" onclick="openEvidence()" data-page-node-id="xCvhpxZCq2sKCmaovTeaJX">打开证据板</button>
+      <button class="btn ev-btn" onclick="gotoVerdict()" id="btn-verdict" data-page-node-id="mqCXAA6cWG706hr9ERh8Gx">提交指控</button>
+    </div>
+    <div class="panel notes-box" data-page-node-id="eybkFSb6zDNDmuvrWHeTRn">
+      <div class="label" data-page-node-id="E44nMCmW1Z4UrwMFaKDRVR">口供笔记</div>
+      <ul id="notes" data-page-node-id="e6SK1dZ7nJYNgOGH89kEY8"><li style="list-style:none;color:var(--muted)" data-page-node-id="0pnpZOG9cbmXqDFauW9zkP">暂无。审讯中被戳破的谎言会自动记入。</li></ul>
+    </div>
+  </section>
+
+  <!-- 审讯 -->
+  <section id="s-int" hidden data-page-node-id="2myf6G8YSusvMsfszOj5Cl">
+    <div class="int-layout" data-page-node-id="S4J0PyGkUuGQ93LE0VpG38">
+      <div class="side" id="side" data-page-node-id="0D28creprcmC5LrqgsaCC3"></div>
+      <div class="chat" data-page-node-id="NlW7zde2PDrbvff3AiH8Aj">
+        <div class="chat-head" data-page-node-id="FtwAOIZBcKwpth3fPNg5c5">
+          <div data-page-node-id="pdSN2LAgjMKCd3e50g3KE8"><div class="nm" id="i-nm" data-page-node-id="hCuAoPNFoLCXaDeNrpr3rE"></div><div class="rel" id="i-rel" data-page-node-id="7tr6y83UZVcHCkBk2GoVLt"></div></div>
+          <div class="rec"><i>●</i> REC</div>
+          <div class="prs" data-page-node-id="DSnZuX6GCMxlENXdbSwlcR">心理防线 <span class="pv" data-page-node-id="LL234GWAjfA4sgoJRLyfD3"><i id="i-pv" data-page-node-id="1ES6e55ZTgCjgEEkiEHISR"></i></span><span class="mono" id="i-pv-n" data-page-node-id="CyzRtpYYzhEGcsofTbSxD4"></span></div>
+        </div>
+        <div class="msgs" id="msgs" data-page-node-id="JVhFEbueOYuj65ABTgTFmC"></div>
+        <div class="quick" id="quick" data-page-node-id="ewuZ59zFH3nKKiMkVVkN9Y"></div>
+        <div class="chat-input" data-page-node-id="dteM0zOuc0g0ZfDppESbny">
+          <textarea id="inp" rows="2" placeholder="输入你的审讯问题…（出示证据请写证据名，如：关于鞋印）"></textarea>
+          <button onclick="send()" data-page-node-id="yRN76bceEzjkV8j4JC1Gww">问</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 指控 -->
+  <section id="s-verdict" hidden class="verdict" data-page-node-id="RNKZE49Rv1lsUog6jI03f7">
+    <div class="panel" data-page-node-id="ExXwUuwnRrhCa6H5imYIcc">
+      <h2 data-page-node-id="8Bg74EUf70ldJ8mCzrBaAP">结案指控</h2>
+      <div class="tip" data-page-node-id="SHJK7xXHP2XYfaqocb0JnL">指认真凶，并从证据板中选取 <b style="color:var(--red)" data-page-node-id="w7mzccYuhWSPEwDI3ImH3N">2 条</b>作为定罪证据链。指控提交后立即宣判——至少一条证据必须真实指向凶手。</div>
+      <div class="label" data-page-node-id="0uNsHvtGViCoSC649XLXEB">一、指认真凶</div>
+      <div class="pick-sus" id="v-sus" data-page-node-id="1blMChxCUzURRT5xustamy"></div>
+      <div class="label" style="margin-top:18px" data-page-node-id="quVJJ4ybIZDAaB6S8PuQCY">二、定罪证据链（选 2 条）</div>
+      <div class="pick-ev" id="v-ev" data-page-node-id="VaBDUW538HaLzHc6uv8yxC"></div>
+      <div style="margin-top:20px;display:flex;gap:12px" data-page-node-id="YFTFewm4tb7BrLZP9xTxBS">
+        <button class="btn" onclick="submitVerdict()" id="btn-submit" data-page-node-id="n7HaCs6vtWCGPUkf6VSi9M">宣布指控</button>
+        <button class="btn ghost" onclick="backToCase()" data-page-node-id="6mIsmVuOQoMvCEyNzQqxwq">返回继续查</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 结算 -->
+  <section id="s-result" hidden class="result" data-page-node-id="KwGL4oUeDAP2ThGaQK5nvO">
+    <div class="big" id="r-big" data-page-node-id="2I5kWvV8Y9nDQgYbBXjLCb"></div>
+    <div id="r-sub" style="color:var(--sub);margin-top:12px;font-size:14px;line-height:1.9" data-page-node-id="BvrEaX3iGHyCQhgLTiaOQj"></div>
+    <div class="rate" id="r-rate" data-page-node-id="1zI7B9qwStuMIZNzbrrorg"></div>
+    <div class="stat-line" id="r-stats" data-page-node-id="aYysTfqwHanPjsAC3765Sw"></div>
+    <div class="panel truth" id="r-truth" data-page-node-id="XS8uJgP7iUXSZE6Ivi2Ebv"></div>
+    <div style="margin-top:22px;display:flex;gap:12px;justify-content:center" data-page-node-id="CEnqT3qPWwwvu9ePCqK1CQ">
+      <button class="btn" onclick="location.reload()" data-page-node-id="dUVGsqXZNT9vu1PqpnbC0Y">再来一案</button>
+      <button class="btn ghost" onclick="copyReport()" data-page-node-id="xWnt4SOYFt7zAoB89wUsv2">复制战报</button>
+    </div>
+  </section>
+</main>
+
+<footer style="padding:18px 0 26px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.02em">© 2026 Demos Wang · 沉默证词 Silent Testimony</footer>
+
+<div class="mask" id="mask" hidden onclick="if(event.target===this)closeMask()" data-page-node-id="eXTMLfKEIFapk7I8PYmpUH">
+  <div class="modal" id="modal" data-page-node-id="Zdjoy32VWBbRt5qM4vzDJQ"></div>
+</div>
+<div class="toast" id="toast" data-page-node-id="kf8bDIJSH59glrUSiPImYe"></div>
+
+<script>
+/* ================= 状态 ================= */
+let G = {api:null, demo:false, c:null, cur:null, turn:0, wrong:0, t0:0, timer:null, busy:false, lockProv:null, lockModel:null};
+const MUG='<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><circle cx="12" cy="8.2" r="3.6"/><path d="M4.5 21.5c0-4.1 3.4-7.5 7.5-7.5s7.5 3.4 7.5 7.5z"/></svg>';
+
+/* ================= API ================= */
+function loadApi(){ try{ return JSON.parse(localStorage.getItem('interrogator_api')||'null'); }catch(e){ return null; } }
+function saveApi(a){ try{ localStorage.setItem('interrogator_api', JSON.stringify(a)); }catch(e){} }
+async function callLLM(messages, maxTokens=800){
+  if(G.demo) return demoLLM(messages);
+  const {base,model,key,provider}=G.api;
+  const temp=provider==='zhipu'?0.85:0.95; // 智谱 temperature 为开区间(0,1)，传 1.0 会被拒
+  let res;
+  try{
+    res = await fetch(base.replace(/\/+$/,'')+'/chat/completions',{
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({model, messages, temperature:temp, max_tokens:maxTokens})
+    });
+  }catch(e){ throw new Error('网络请求失败（Failed to fetch）——检查网络/代理是否可达该接口'); }
+  const body=await res.text();
+  let data; try{ data=JSON.parse(body); }catch(e){ throw new Error('接口返回非 JSON：'+body.slice(0,160)); }
+  if(!res.ok) throw new Error('API '+res.status+'：'+((data.error&&data.error.message)||body.slice(0,160)));
+  if(!data.choices||!data.choices[0]) throw new Error('接口无内容返回：'+JSON.stringify(data).slice(0,160));
+  const c=data.choices[0];
+  return (c.message&&c.message.content)||c.content||'';
+}
+function parseJSON(t){
+  t=t.replace(/```json|```/g,'');
+  const a=t.indexOf('{'), b=t.lastIndexOf('}');
+  if(a<0||b<0) throw new Error('返回非 JSON：'+t.slice(0,120));
+  return JSON.parse(t.slice(a,b+1));
+}
+function toast(s){ const t=document.getElementById('toast'); t.textContent=s; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2600); }
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ================= 开新案 ================= */
+function startNew(){ openSettings(true); } // 每局开始必选模型、填 Key，本局锁定同一家
+async function beginCase(){
+  G.api = G.api||loadApi();
+  if(!G.api){ openSettings(true); return; }
+  G.demo=false;
+  show('s-gen');
+  const lines=['正在立案','勘查现场','排查嫌疑人','卷宗装订'];
+  let li=0; const gt=document.getElementById('gen-text');
+  const tick=setInterval(()=>{ li=(li+1)%lines.length; gt.innerHTML=lines[li]+'<span class="dot">…</span>'; },1400);
+  try{
+    const c = await genCase();
+    initCase(c);
+  }catch(e){
+    clearInterval(tick);
+    show('s-home');
+    toast('立案失败：'+e.message);
+  }
+  clearInterval(tick);
+}
+async function genCase(){
+  let lastErr;
+  for(let i=0;i<3;i++){
+    try{
+      const suffix=i===0?'':'（注意：上一次输出被截断或不完整。请从头完整输出全部 JSON，闭合所有括号，字段一个都不能少：suspects 恰好 3 个、每人 2 个 lies，evidence 恰好 5 个。）';
+      const txt=await callLLM([{role:'user',content:GEN_PROMPT+suffix}],3800);
+      console.log('[立案] 原始返回：',txt);
+      let c=null; try{ c=parseJSON(txt); }catch(e){}
+      if(!c||typeof c!=='object') c=repairJSON(txt);
+      if(!c) { lastErr=new Error('返回无法解析为 JSON'); continue; }
+      if(!Array.isArray(c.suspects)) c.suspects=c.suspects?Object.values(c.suspects):[];
+      if(!Array.isArray(c.evidence)) c.evidence=c.evidence?Object.values(c.evidence):[];
+      if(c.suspects.length>=3&&c.evidence.length>=2) return c;
+      lastErr=new Error('案卷字段不完整（嫌疑人 '+c.suspects.length+'、证据 '+c.evidence.length+'）');
+    }catch(e){ lastErr=e; }
+  }
+  throw lastErr;
+}
+/* 截断 JSON 自动修复：回退到最后一个完整元素并补齐括号 */
+function repairJSON(t){
+  let s=t.replace(/```json|```/g,'').trim();
+  const a=s.indexOf('{'); if(a<0) return null;
+  s=s.slice(a);
+  const cut=s.lastIndexOf('}');
+  if(cut<10) return null;
+  let cand=s.slice(0,cut+1).replace(/,\s*$/,'');
+  const opens={'{':0,'[':0}; let inStr=false,esc=false;
+  for(const ch of cand){
+    if(inStr){ if(esc)esc=false; else if(ch==='\\')esc=true; else if(ch==='"')inStr=false; continue; }
+    if(ch==='"'){inStr=true;continue;}
+    if(ch==='{')opens['{']++; else if(ch==='[')opens['[']++;
+    else if(ch==='}')opens['{']--; else if(ch===']')opens['[']--;
+  }
+  cand+=']'.repeat(Math.max(0,opens['[']))+'}'.repeat(Math.max(0,opens['{']));
+  try{ const o=JSON.parse(cand); return typeof o==='object'?o:null; }catch(e){ return null; }
+}
+function initCase(c){
+  G.c=c; G.turn=0; G.wrong=0; G.t0=Date.now();
+  G.lockProv=G.api?G.api.provider:null; G.lockModel=G.api?G.api.model:null; // 本局锁定服务商
+  c.no='No.JS-'+Math.floor(1000+Math.random()*9000);
+  c.suspects.forEach((s,i)=>{ s.id=s.id||String.fromCharCode(65+i); s.pressure=10; s.broken=[]; s.history=[]; s.confessed=false; s.lies=s.lies||[]; s.notes=[]; });
+  const mk=c.suspects.find(s=>s.id===c.murderer)||c.suspects.find(s=>c.murderer&&String(c.murderer).includes(s.name));
+  c.murderer=mk?mk.id:c.suspects[0].id;
+  c.evidence=(c.evidence||[]).map((e,i)=>({id:e.id||('E'+(i+1)),name:e.name||'未知证物',desc:e.desc||'',points_to:['murderer','innocent','neutral'].includes(e.points_to)?e.points_to:'neutral'}));
+  if(!c.evidence.some(e=>e.points_to==='murderer')&&c.evidence[0]) c.evidence[0].points_to='murderer';
+  document.getElementById('h-case').textContent='「'+c.title+'」';
+  document.getElementById('h-new').hidden=false;
+  document.getElementById('h-timer').hidden=false;
+  G.timer=setInterval(()=>{ const s=Math.floor((Date.now()-G.t0)/1000);
+    document.getElementById('h-timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },1000);
+  renderCase(); show('s-case');
+}
+function renderCase(){
+  const c=G.c;
+  document.getElementById('case-head').innerHTML=`
+    <div class="stamp">绝密</div>
+    <div class="label">案卷 ${c.no} · ${c.crime||'命案'}</div>
+    <h2>${c.title}</h2>
+    <div class="meta">死者：${c.victim} ｜ 地点：${c.location} ｜ 时间：${c.time}</div>
+    <div class="intro">${c.intro}</div>`;
+  document.getElementById('sus-grid').innerHTML=c.suspects.map((s,i)=>`
+    <div class="sus" onclick="openInterview(${i})">
+      <div class="mug">${MUG}</div>
+      <h4>${s.name}${s.confessed?'<span class="done">已交代</span>':''}</h4>
+      <div class="idn">${s.identity}　·　${s.relation}</div>
+      <div class="st"><span>心理防线</span><span class="mono">${s.pressure}%</span></div>
+    </div>`).join('');
+  renderNotes();
+}
+function renderNotes(){
+  const notes=[]; G.c.suspects.forEach(s=>{ (s.notes||[]).forEach(n=>notes.push(`【${s.name}】${n}`)); });
+  document.getElementById('notes').innerHTML=notes.length?notes.map(n=>`<li>${n}</li>`).join(''):'<li style="list-style:none;color:var(--muted)">暂无。审讯中被戳破的谎言会自动记入。</li>';
+}
+function show(id){ ['s-home','s-gen','s-case','s-int','s-verdict','s-result'].forEach(x=>document.getElementById(x).hidden=x!==id); window.scrollTo(0,0); }
+
+/* ================= 证据板 ================= */
+function openEvidence(){
+  document.getElementById('mask').hidden=false;
+  document.getElementById('modal').innerHTML=`<h3>证据板 · ${G.c.title}</h3>
+    <div class="ev-grid">${G.c.evidence.map(e=>`<div class="ev" style="cursor:default"><b>${e.id} ${e.name}</b><p>${e.desc}</p></div>`).join('')}</div>
+    <div style="margin-top:16px;text-align:right"><button class="btn ghost" onclick="closeMask()">收起</button></div>`;
+}
+function closeMask(){ document.getElementById('mask').hidden=true; }
+
+/* ================= 审讯 ================= */
+function openInterview(i){
+  G.cur=i; renderSide(); renderChatShell(); show('s-int');
+}
+function renderSide(){
+  document.getElementById('side').innerHTML=G.c.suspects.map((s,i)=>`
+    <div class="item ${i===G.cur?'cur':''}" onclick="openInterview(${i})">
+      <h5>${s.name}${s.confessed?' ✓':''}</h5>
+      <small>${s.identity}</small>
+      <div class="pv"><i style="width:${s.pressure}%;background:${prsColor(s.pressure)}"></i></div>
+    </div>`).join('')+
+    `<div class="ev-side">
+      <div class="ev-head" onclick="toggleEvSide()">证据板 · ${G.c.evidence.length} 条<span>${EV_OPEN?'▾':'▸'}</span></div>
+      ${EV_OPEN?G.c.evidence.map((e,i)=>`
+        <div class="ev-row" onclick="showEvDesc(this)">
+          <b>${e.id} ${e.name}<button class="cite" onclick="event.stopPropagation();citeEv('${e.name}')">出示</button></b>
+          <p hidden>${e.desc}</p>
+        </div>`).join(''):''}
+    </div>`+
+    `<div class="item" onclick="backToCase()"><h5 style="color:var(--amber)">← 返回卷宗</h5></div>`;
+}
+let EV_OPEN=false;
+function toggleEvSide(){ EV_OPEN=!EV_OPEN; renderSide(); }
+function showEvDesc(row){ const p=row.querySelector('p'); p.hidden=!p.hidden; }
+function citeEv(name){
+  const inp=document.getElementById('inp');
+  inp.value='关于"'+name+'"，你作何解释？';
+  inp.focus();
+  toast('已引用证据，补充你的追问后发送');
+}
+function backToCase(){ renderCase(); show('s-case'); }
+const prsColor=p=>`hsl(${Math.max(0,120-p*1.2)},60%,45%)`;
+function renderChatShell(){
+  const s=G.c.suspects[G.cur];
+  document.getElementById('i-nm').textContent=s.name;
+  document.getElementById('i-rel').textContent=s.identity+' · '+s.relation;
+  updPressure(s);
+  const box=document.getElementById('msgs'); box.innerHTML='';
+  if(!s.history.length){
+    s.history=[{role:'assistant',content:JSON.stringify({say:s.opening||'（沉默）',pressure:0,broken:null,note:null})}];
+  }
+  s.history.forEach(h=>{ if(h.role==='user') addMsg('me',h.content); else addMsg('ai',trySay(h.content)); });
+  document.getElementById('quick').innerHTML=['你的不在场证明？','案发当晚你在哪里？','你和死者的关系？'].map(q=>`<button onclick="quick('${q}')">${q}</button>`).join('');
+}
+function trySay(c){ try{ return parseJSON(c).say; }catch(e){ return c; } }
+function addMsg(who,txt){ const d=document.createElement('div'); d.className='m '+who; d.textContent=txt; document.getElementById('msgs').appendChild(d); scrollBottom(); return d; }
+function scrollBottom(){ const m=document.getElementById('msgs'); m.scrollTop=m.scrollHeight; }
+function updPressure(s){
+  document.getElementById('i-pv').style.width=s.pressure+'%';
+  document.getElementById('i-pv').style.background=prsColor(s.pressure);
+  document.getElementById('i-pv').classList.toggle('hot',s.pressure>=70);
+  document.getElementById('i-pv-n').textContent=s.pressure+'%';
+  document.getElementById('side').querySelectorAll('.item .pv i').forEach((el,i)=>{ const t=G.c.suspects[i]; if(t){ el.style.width=t.pressure+'%'; el.style.background=prsColor(t.pressure);} });
+}
+function quick(q){ document.getElementById('inp').value=q; send(); }
+async function send(){
+  if(G.busy) return;
+  const inp=document.getElementById('inp'); const q=inp.value.trim(); if(!q) return;
+  inp.value='';
+  const s=G.c.suspects[G.cur];
+  if(s.confessed){ addMsg('sys',s.name+' 已彻底交代，回到卷宗提审其他人。'); return; }
+  addMsg('me',q); s.history.push({role:'user',content:q});
+  G.turn++; askAI();
+}
+async function askAI(first){
+  const s=G.c.suspects[G.cur];
+  G.busy=true;
+  let ph=addMsg('ai','…'); ph.style.opacity=.5;
+  try{
+    const sys=SUS_PROMPT(G.c,s);
+    const hist=s.history.slice(-14).map(h=>({role:h.role,content:h.content}));
+    if(hist.length&&hist[0].role!=='user') hist.unshift({role:'user',content:'（审讯开始。请以角色身份开始回应。）'});
+    const msgs=[{role:'system',content:sys},...hist];
+    const txt=await callLLM(msgs,600);
+    let r; try{ r=parseJSON(txt); }catch(e){ r={say:txt.slice(0,300),pressure:2,broken:null,note:null}; }
+    ph.remove();
+    ph=addMsg('ai',''); await typewriter(ph, r.say||'（沉默）');
+    if(r.broken!=null&&!s.broken.includes(+r.broken)) s.broken.push(+r.broken);
+    s.pressure=Math.max(0,Math.min(100,s.pressure+(+r.pressure||0)));
+    updPressure(s);
+    s.history.push({role:'assistant',content:txt});
+    if(r.note){ (s.notes=s.notes||[]).push(r.note); renderNotes(); }
+    if(s.pressure>=100||s.broken.length>=Math.max(1,(s.lies||[]).length)){ await confess(); return; }
+    renderSide();
+  }catch(e){
+    ph.remove();
+    const m=e.message||String(e);
+    const hint=/Failed to fetch|网络/i.test(m)?'｜排查：换网络或换服务商再试':(/API 4\d\d/i.test(m)?'｜排查：核对 Key 与模型名，仍失败请把本条提示发我':'');
+    addMsg('sys','⚠ 通讯异常：'+m+hint);
+  }
+  G.busy=false;
+}
+function typewriter(el,txt){
+  return new Promise(res=>{ let i=0;
+    const t=setInterval(()=>{ el.textContent=txt.slice(0,++i); scrollBottom();
+      if(i>=txt.length){clearInterval(t);res();} },18); });
+}
+async function confess(){
+  const s=G.c.suspects[G.cur]; s.confessed=true; G.busy=true;
+  addMsg('sys','⚖ '+s.name+' 的心理防线已被击穿——');
+  let txt;
+  try{
+    txt=await callLLM([{role:'system',content:SUS_PROMPT(G.c,s)},{role:'user',content:'你已彻底崩溃。以第一人称写一段 150 字左右的彻底交代独白：说出你隐瞒的全部真相（若你是真凶，交代作案过程与动机；若你不是，坦白你隐瞒的秘密）。直接输出独白文本，不要 JSON。'}],500);
+  }catch(e){ txt='……好吧，我说，我全说。'; }
+  const ph=addMsg('ai',''); await typewriter(ph,txt.trim());
+  (s.notes=s.notes||[]).push('【彻底交代】'+txt.trim().slice(0,80)+'…');
+  s.history.push({role:'assistant',content:JSON.stringify({say:txt,pressure:0,broken:null,note:null})});
+  renderNotes(); renderSide();
+  addMsg('sys','口供已记入案卷。'+(G.c.suspects.every(x=>x.confessed)?'所有人都交代了，可以回去提交指控。':''));
+  G.busy=false;
+}
+
+/* ================= 指控 ================= */
+function gotoVerdict(){
+  document.getElementById('v-sus').innerHTML=G.c.suspects.map((s,i)=>`
+    <div class="sus" data-i="${i}" onclick="pickSus(this,${i})"><div class="mug">${MUG}</div><h4>${s.name}</h4><div class="idn">${s.identity}</div></div>`).join('');
+  document.getElementById('v-ev').innerHTML=G.c.evidence.map((e,i)=>`
+    <div class="ev" data-id="${e.id}" onclick="pickEv(this)"><b>${e.id} ${e.name}</b><p>${e.desc}</p></div>`).join('');
+  G.vSus=null; G.vEv=[];
+  show('s-verdict');
+}
+function pickSus(el,i){ document.querySelectorAll('#v-sus .sus').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); G.vSus=i; }
+function pickEv(el){
+  const id=el.dataset.id;
+  if(G.vEv.includes(id)){ G.vEv=G.vEv.filter(x=>x!==id); el.classList.remove('sel'); }
+  else{ if(G.vEv.length>=2){toast('最多选 2 条证据');return;} G.vEv.push(id); el.classList.add('sel'); }
+}
+function submitVerdict(){
+  if(G.vSus===null||G.vEv.length!==2){ toast('请先指认真凶并选够 2 条证据'); return; }
+  const sus=G.c.suspects[G.vSus];
+  const isRightSus = sus.id===G.c.murderer;
+  const keyEv = G.c.evidence.filter(e=>e.points_to==='murderer').map(e=>e.id);
+  const evOk = G.vEv.some(id=>keyEv.includes(id));
+  finish(isRightSus&&evOk, sus, isRightSus, evOk);
+}
+
+/* ================= 结算 ================= */
+function finish(win,sus,rightSus,evOk){
+  clearInterval(G.timer);
+  const mins=Math.floor((Date.now()-G.t0)/60000);
+  const lies=G.c.suspects.reduce((n,s)=>n+s.broken.length,0);
+  let score=100-G.turn*2; score=Math.max(10,Math.min(100,score));
+  const rate=win?(score>=85?'S · 名侦探':score>=70?'A · 资深刑警':score>=50?'B · 合格探员':'C · 险胜'):'D · 未结案';
+  const truthSus=G.c.suspects.find(x=>x.id===G.c.murderer)||G.c.suspects[0];
+  document.getElementById('r-big').textContent=win?'真凶落网':'真凶脱逃';
+  document.getElementById('r-big').className='big '+(win?'ok':'no');
+  document.getElementById('r-sub').innerHTML=win
+    ?`你指控 <b style="color:var(--ink)">${sus.name}</b>${rightSus?'，人对了':'，但人错了'}；证据链${evOk?'成立':'不足'}。<br>${sus.name}在铁证面前低下头。`
+    :`指控${rightSus?'的人对了，但证据链不足':('了 <b style="color:var(--ink)">'+sus.name+'</b>，但真凶另有其人')}。<br>卷宗合上的那一刻，你听见了自己的心跳。`;
+  document.getElementById('r-rate').textContent='评定 '+rate;
+  document.getElementById('r-stats').innerHTML=
+    `<span>耗时 <b>${mins} 分钟</b></span><span>审讯 <b>${G.turn} 轮</b></span><span>戳破谎言 <b>${lies} 处</b></span>`;
+  const ke=G.c.evidence.filter(e=>e.points_to==='murderer');
+  document.getElementById('r-truth').innerHTML=`
+    <div class="label">真相还原</div>
+    <p style="color:#cfd4da;font-size:13.5px;line-height:2">真凶是 <b style="color:var(--amber)">${truthSus.name}</b>（${truthSus.identity}）。动机：${G.c.motive||'—'}。<br>
+    关键证据：${ke.map(e=>e.id+' '+e.name).join('；')||'—'}。</p>`;
+  G.report=`【沉默证词】${win?'我撬开了':'可惜，'}「${G.c.title}」——${win?'真凶'+truthSus.name+'落网，评定 '+rate:'真凶脱逃'}。耗时${mins}分钟、${G.turn}轮审讯、戳破${lies}处谎言。敢来试试吗？`;
+  show('s-result');
+}
+function copyReport(){ navigator.clipboard?.writeText(G.report).then(()=>toast('战报已复制，去发朋友圈')).catch(()=>toast(G.report)); }
+
+/* ================= 设置 ================= */
+const PROVIDERS={
+  zhipu:{name:'智谱 GLM ★免费',base:'https://open.bigmodel.cn/api/paas/v4',
+    models:[{id:'glm-4-flash',tag:'完全免费'},{id:'glm-4.5-flash',tag:'免费'},{id:'glm-4.6'},{id:'glm-4.5'}],
+    hint:'首选免费方案：open.bigmodel.cn 注册 → 控制台「API Keys」复制即用，glm-4-flash 不花钱。'},
+  siliconflow:{name:'硅基流动 ★免费',base:'https://api.siliconflow.cn/v1',
+    models:[{id:'Qwen/Qwen2.5-7B-Instruct',tag:'免费'},{id:'THUDM/glm-4-9b-chat',tag:'免费'},{id:'Qwen/Qwen2.5-72B-Instruct'}],
+    hint:'cloud.siliconflow.cn 注册即送大额体验金，7B/9B 小模型长期免费，速度快。'},
+  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com/v1',
+    models:[{id:'deepseek-chat'},{id:'deepseek-reasoner',tag:'推理强'}],
+    hint:'platform.deepseek.com 注册即送额度，价格极低，演技最好，推荐预算内首选。'},
+  kimi:{name:'Kimi 月之暗面',base:'https://api.moonshot.cn/v1',
+    models:[{id:'moonshot-v1-8k'},{id:'kimi-k2-0905-preview'}],
+    hint:'platform.moonshot.cn 注册送额度。'},
+  qwen:{name:'通义千问',base:'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    models:[{id:'qwen-plus'},{id:'qwen-max'},{id:'qwen-turbo',tag:'最便宜'}],
+    hint:'阿里云百炼 bailian.console.aliyun.com 开通，新用户送各模型免费额度。'},
+  custom:{name:'自定义接口',base:'',models:[],hint:'任何 OpenAI 兼容接口：填地址（到 /v1）、模型名、Key。'}
+};
+function guessProvider(base){
+  if(!base) return null;
+  if(base.includes('bigmodel')) return 'zhipu';
+  if(base.includes('siliconflow')) return 'siliconflow';
+  if(base.includes('deepseek')) return 'deepseek';
+  if(base.includes('moonshot')) return 'kimi';
+  if(base.includes('dashscope')) return 'qwen';
+  return 'custom';
+}
+let setProv='zhipu', setKey='';
+function openSettings(force){
+  G.api=G.api||loadApi();
+  setProv=G.lockProv||((G.api&&G.api.provider)||guessProvider(G.api&&G.api.base)||'zhipu');
+  setKey=(G.api&&G.api.key)||'';
+  renderSettings(force);
+}
+function renderSettings(force){
+  const keyEl=document.getElementById('f-key'); if(keyEl) setKey=keyEl.value;
+  const p=PROVIDERS[setProv];
+  const lockNote=G.lockProv?`<div class="hint" style="color:var(--amber)">🔒 本局已锁定服务商：${PROVIDERS[G.lockProv].name}${G.lockModel?' · '+G.lockModel:''}——全流程只用这一家，不串台。要换服务商，先点右上角「换一案」结束本局。</div>`:'';
+  const modelFld=p.models.length
+    ?`<select id="f-model">${p.models.map(m=>`<option value="${m.id}" ${(G.api&&G.api.model)===m.id?'selected':''}>${m.id}${m.tag?' · '+m.tag:''}</option>`).join('')}</select>`
+    :`<input id="f-model" placeholder="模型名，如 gpt-4o" value="${(G.api&&G.api.model)||''}">`;
+  const baseFld=setProv==='custom'
+    ?`<div class="fld"><label>接口地址（OpenAI 兼容，填到 /v1 为止）</label><input id="f-base" placeholder="https://xxx.com/v1" value="${(G.api&&G.api.base)||''}"></div>`:'';
+  document.getElementById('mask').hidden=false;
+  document.getElementById('modal').innerHTML=`
+    <h3>接入 AI 大脑</h3>
+    <div class="fld"><label>选择服务商（★免费模型 0 成本，注册拿 Key 即可）</label>
+      <div class="prov-row">${Object.keys(PROVIDERS).map(k=>{
+        const dis=G.lockProv&&k!==G.lockProv;
+        return `<button class="${k===setProv?'on':''} ${dis?'off':''}" ${dis?`onclick="toast('本局已锁定服务商，换其他家请先点右上角「换一案」结束本局')"`:`onclick="setProv='${k}';renderSettings(${!!force})"`}>${PROVIDERS[k].name}</button>`;
+      }).join('')}</div>${lockNote}</div>
+    ${baseFld}
+    <div class="fld"><label>API Key（仅保存在你本机浏览器，不会上传）</label>
+      <input id="f-key" type="password" placeholder="粘贴你的 API Key" value="${setKey}"></div>
+    <div class="fld"><label>模型</label>${modelFld}</div>
+    ${p.hint?`<div class="hint">${p.hint}</div>`:''}
+    <div style="margin-top:18px;display:flex;gap:10px">
+      <button class="btn" onclick="saveSettings(${!!force})">保存${force?'并开始立案':''}</button>
+      <button class="btn ghost" onclick="useDemo()">先玩演示模式</button>
+      ${force?'':'<button class="btn ghost" onclick="closeMask()">取消</button>'}
+    </div>`;
+}
+function saveSettings(force){
+  const p=PROVIDERS[setProv];
+  const key=(document.getElementById('f-key').value||'').trim();
+  const model=(document.getElementById('f-model').value||'').trim();
+  const base=p.base||(document.getElementById('f-base')||{value:''}).value.trim();
+  if(!key){ toast('API Key 要填'); return; }
+  if(!base||!model){ toast('接口地址和模型都要填'); return; }
+  G.api={provider:setProv,base,model,key}; saveApi(G.api); closeMask();
+  if(force||document.getElementById('s-home').hidden===false) beginCase();
+  else toast('已保存，下一轮对话生效');
+}
+function useDemo(){
+  closeMask(); G.demo=true; initCase(JSON.parse(JSON.stringify(DEMO_CASE)));
+}
+
+/* ================= Prompt ================= */
+const GEN_PROMPT=`你是顶级罪案编剧。为一款"AI审讯"游戏生成一桩原创谋杀案卷宗。要求：
+1. 现代中国都市背景，动机真实、时间线自洽、逻辑无硬伤。
+2. 3 名嫌疑人，恰好 1 名是真凶。每人都有秘密：真凶撒谎掩盖罪行；无辜者也有隐瞒（与案件相关的私心/目击/情感），制造迷惑性。
+3. 5 条现场勘查证据：其中恰好 2 条真正指向真凶（points_to="murderer"），1 条误导性指向无辜者（points_to="innocent"），其余中性（points_to="neutral"）。证据 desc 要具体可引用（数字、时间、尺寸、位置）。
+4. 每名嫌疑人恰好 2 个谎言点：lie 是其对警方说的话，break 是"会被什么戳破"的描述，kw 是 3~5 个能触发戳破的关键词（证据名/时间/地名等，供引擎匹配）。
+5. opening 为嫌疑人对审讯官说的第一句话（40字内，体现性格）。
+6. 所有描述要有细节和画面感（含玩家可引用的数字、时间、地点）：intro 120字左右、desc 50~70字、alibi 60~80字、secret 50字左右、motive 50字左右。内容宁丰富勿干瘪，但必须完整闭合输出、不可中途截断。
+7. 严格输出如下 JSON：紧凑单行、不要任何其他文字、不要 markdown 代码块：
+{"title":"案件名(6字内)","crime":"案件类型","victim":"死者姓名+身份","location":"案发地点","time":"案发时间","intro":"案情简述120字内","motive":"真凶的真实动机(50字内)","murderer":"真凶在suspects中的id，如 A","suspects":[{"id":"A","name":"姓名","identity":"身份职业","relation":"与死者关系","personality":"性格与说话风格30字内","alibi":"真实行踪与是否撒谎(60字内)","secret":"其隐瞒的秘密(50字内)","opening":"开场台词","lies":[{"lie":"谎言内容","break":"如何被戳破","kw":["关键词1","关键词2"]},{"lie":"谎言内容","break":"如何被戳破","kw":["关键词1","关键词2"]}]}],"evidence":[{"id":"E1","name":"证据名","desc":"勘查描述50~70字，含可引用细节","points_to":"murderer|innocent|neutral"}]}`;
+
+function SUS_PROMPT(c,s){
+  const lies=s.lies.map((l,i)=>`${i+1}. 谎言：${l.lie}｜戳破方式：${l.break}｜关键词：${(l.kw||[]).join('、')}`).join('\n');
+  return `你在一个"AI审讯"游戏里扮演角色。以下是玩家不可见的完整案卷与你的角色卡，你必须完全保密案卷结构，只以角色身份说话。
+
+【完整案卷】案件：${c.title}；死者：${c.victim}；案发：${c.time}，${c.location}；案情：${c.intro}；真凶：${c.murderer}；真凶动机：${c.motive}。
+
+【你的角色】${s.id} ${s.name}，${s.identity}，与死者关系：${s.relation}。
+性格：${s.personality}。真实行踪：${s.alibi}。你隐瞒的秘密：${s.secret}。
+你的谎言点（编号1/2）：
+${lies}
+
+【扮演规则】
+1. 第一人称，台词含神态动作描写（括号内），80~160字，完全符合性格。
+2. 你知道全部真相但绝不自爆：未被戳破的谎言坚决维持，被无据指控时反驳、愤怒或冷笑。
+3. 只有当玩家的话命中你的谎言点关键词、或指出与事实的矛盾、或引用了能戳破它的证据时，才承认该谎言点：松一个口，给部分真话，同时流露慌乱。
+4. 每次只松一个口，不主动交代更多。压力越高话越短、越容易漏细节。
+5. 严格输出 JSON，不要其他文字：
+{"say":"台词","pressure":压力变化整数(-10到25，被戳破时20~25，被无据驳斥时-5~-10，平常0~8),"broken":被戳破的谎言点编号数字或null,"note":"一句话口供笔记(仅在被戳破或交代新信息时，否则null)"}`;
+}
+
+/* ================= 演示模式 ================= */
+const DEMO_CASE={
+ title:"雨夜画室", crime:"故意杀人", victim:"顾原（画家）", location:"滨江区 老仓库改建画室", time:"9月7日 21:40 前后",
+ intro:"连日暴雨。画家顾原被发现死于自家画室，后脑遭钝器击打，现场挂锁被撬，未遗失财物。他生前正准备公开指控某幅成名作系伪造。",
+ motive:"顾原识破《雨巷》为赝品并准备公开，沈明楼的画商帝国将随鉴定崩塌。",
+ murderer:"A",
+ suspects:[
+  {id:"A",name:"沈明楼",identity:"画廊老板",relation:"死者的合作画商",personality:"圆滑客气，滴水不漏，情绪好的时候笑，被戳到时笑得更用力",
+   alibi:"当晚 20:50 潜入画室与顾原谈判破裂，21:30 左右用铜镇纸行凶，伪造成劫杀。谎称从未去过画室。",
+   secret:"《雨巷》是他安排人伪造的，赚了三千万。",opening:"（整了整袖口）顾原的事我也刚听说，太震惊了。警官，有话请讲。",
+   lies:[{lie:"声称自己这一年从没去过那间画室",break:"42码皮鞋印与未发出短信戳破",kw:["鞋印","42","短信","雨巷","去过画室"]},
+         {lie:"声称案发当晚在公司加班到十一点",break:"楼下代驾记录显示其 20:30 打车离开公司方向为滨江",kw:["加班","代驾","十一点","当晚在哪","出租车"]}]},
+  {id:"B",name:"林小满",identity:"美院研究生",relation:"死者的学生",personality:"紧张，语速快，一被逼问就眼圈红",
+   alibi:"21 点后确实折返画室取伞，到门口发现挂锁被撬、灯亮着，吓得没进去就走了。谎称 9 点前就离开了。",
+   secret:"她临摹过《雨巷》底稿，怕被卷进伪造案说不清。",opening:"（手指绞着衣角）老师他……真的没救了吗？我问过门卫的，我 9 点前就走了的。",
+   lies:[{lie:"声称晚上九点前就离开画室再没回来",break:"围巾遗留与门卫作息戳破",kw:["围巾","九点","回来","监控","门卫"]},
+         {lie:"声称完全不知道《雨巷》有真假争议",break:"其手写临摹底稿戳破",kw:["雨巷","底稿","临摹","假的","争议"]}]},
+  {id:"C",name:"苏黎",identity:"策展人",relation:"死者的前妻",personality:"冷静克制，答话简短，沉默比语言多",
+   alibi:"21:10 因离婚财产谈判不欢而散离开，此后去药店买了安眠药，独自回家。隐瞒了当晚来过画室谈复婚被拒。",
+   secret:"她仍爱着顾原，当晚是来求复合的，被拒后失态离开。",opening:"（平静地）我们离婚两年了。警官，该问的问吧。",
+   lies:[{lie:"声称与顾原早已没有往来",break:"未发出的复婚短信戳破",kw:["短信","复婚","往来","前妻","联系"]},
+         {lie:"声称离开画室后直接回了家",break:"药店 21:40 购药记录戳破",kw:["药店","回家","直接","安眠药","离开后"]}]}
+ ],
+ evidence:[
+  {id:"E1",name:"撬坏的挂锁",desc:"挂锁被专业工具撬开，切口平整。门禁记录显示顾原本人 21:00 后未再进出。",points_to:"neutral"},
+  {id:"E2",name:"42码颜料皮鞋印",desc:"现场提取男士皮鞋印一枚，42码，鞋底纹路里检出蓝色油画颜料，与画室当日在用的钴蓝一致。",points_to:"murderer"},
+  {id:"E3",name:"未发出的短信",desc:"顾原手机草稿箱：「我请了三家鉴定机构，《雨巷》是假的，周一见分晓。」收件人为沈明楼。",points_to:"murderer"},
+  {id:"E4",name:"女式羊绒围巾",desc:"画室门内角落发现酒红色羊绒围巾，检出林小满 DNA。她称一周前来上课时遗失。",points_to:"innocent"},
+  {id:"E5",name:"小区监控",desc:"监控显示苏黎 21:10 神色如常离开大楼，21:38 出现在两条街外药店。沈明楼车辆 20:35 驶入后巷（摄像头盲区无人员画面）。",points_to:"neutral"}
+ ]
+};
+function demoLLM(messages){
+  const last=[...messages].reverse().find(m=>m.role==='user')?.content||'';
+  const gen=messages.find(m=>m.role==='system')?.content||'';
+  if(!G.c) return '……';
+  const susMsg = gen.includes('你的谎言点');
+  if(susMsg){
+    const s=G.cur!=null?G.c.suspects[G.cur]:null;
+    if(!s) return JSON.stringify({say:'（沉默）',pressure:0,broken:null,note:null});
+    if(/彻底崩溃/.test(last)){
+      return s.id==='A'
+        ?'（笑到一半，笑不出来了）……《雨巷》是我找人做的。三千万。顾原他周一就要公布鉴定，我全完了——那晚我求他高抬贵手，他把我那点体面踩在脚下。镇纸是我拿的，我只想吓他，他背过身去打电话，我就……我就砸下去了。'
+        :s.id==='B'
+        ?'（哭出声）我九点半又回去过……伞落了。锁是撬开的，屋里灯亮着，我听见好像有人说话，我吓得跑了。围巾是我上次丢的，老师《雨巷》的底稿是我临的，但假画真的不是我！'
+        :'（长久沉默）……那条短信是我写的，我想复婚。他拒绝了。我走了，去药店买了安眠药，回家哭到天亮。我恨过他，但我没杀他。警官，如果我爱过一个人，就不会让他死在雨夜里。';
+    }
+    let broken=null,pres=4;
+    for(let i=0;i<s.lies.length;i++){
+      if(s.broken.includes(i+1)) continue;
+      const kw=s.lies[i].kw||[];
+      if(kw.some(k=>last.includes(k))){ broken=i+1; pres=25; break; }
+    }
+    if(broken===null&&/(撒谎|说谎|骗子|假的|矛盾|不对)/.test(last)){ pres=8; }
+    if(broken===null&&G.c.evidence.some(e=>last.includes(e.name)||last.includes(e.id))){ pres=6; }
+    let say,note=null;
+    if(broken!==null){
+      s.broken.push(broken);
+      const truths={
+        'A1':'（笑容凝固半秒）……好吧，很多年前我去过一次，谈合作。那之后真没去过。',
+        'A2':'（沉默很久）那晚我是提前离开了公司。有些应酬，不方便说。',
+        'B1':'（眼圈红了）我……我是回去取伞来着。可我到门口灯是亮的，我不敢进去。',
+        'B2':'（声音发抖）底稿的事……老师不让说。我真的只临过一次。',
+        'C1':'（手指收紧）短信……是我写的。我以为我们还能回到从前。',
+        'C2':'（停顿）我没有直接回家。我去走了走。'
+      };
+      say=truths[s.id+broken]||'（神色微变）……你从哪听说的这些。';
+      note=(broken===1?s.lies[0].lie:s.lies[1].lie)+'——已被戳破';
+    }else if(pres>=8){
+      say=s.id==='A'?'（笑）警官，审人要讲证据。你这话，证据呢？':s.id==='B'?'（急促）不是的，不是这样的，你听我解释——':'（看着你，不说话）';
+    }else{
+      const pool={
+        A:['（端起茶杯吹了吹）顾原这个人，艺术家脾气。他得罪的人，可不止我一个。','（靠回椅背）警官，做画商二十年，我什么场面没见过。你想问什么？'],
+        B:['（手指绞在一起）我那天……我很早就走了，真的。','（声音很小）老师对我很好的。他不可能是被人恨成那样的。'],
+        C:['（沉默两秒）该说的，我上一轮都说过了。','（平静）雨很大。我到家就睡了。']
+      };
+      const arr=pool[s.id]; say=arr[Math.floor(Math.random()*arr.length)];
+    }
+    return JSON.stringify({say,pressure:pres,broken:broken,note:note});
+  }
+  return '……';
+}
+
+/* 输入体验 */
+document.getElementById('inp').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } });
+
+/* 计时启动保护 */
+window.addEventListener('beforeunload',()=>clearInterval(G.timer));
+</script>
+</body>
+</html>
